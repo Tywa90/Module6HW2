@@ -51,4 +51,21 @@ public class CatalogItemRepository : ICatalogItemRepository
 
         return item.Entity.Id;
     }
+
+    public async Task<PaginatedItems<CatalogItem>> GetByIdAsync(int pageIndex, int pageSize, int id)
+    {
+        var totalItems = await _dbContext.CatalogItems
+            .LongCountAsync();
+
+        var itemsOnPage = await _dbContext.CatalogItems
+            .Include(i => i.CatalogBrand)
+            .Include(i => i.CatalogType)
+            .Where(i => i.Id == id)
+            .OrderBy(c => c.Name)
+            .Skip(pageSize * pageIndex)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PaginatedItems<CatalogItem>() { TotalCount = totalItems, Data = itemsOnPage };
+    }
 }
