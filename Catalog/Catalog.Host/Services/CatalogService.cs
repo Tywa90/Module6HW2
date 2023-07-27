@@ -12,6 +12,7 @@ public class CatalogService : BaseDataService<ApplicationDbContext>, ICatalogSer
 {
     private readonly ICatalogItemRepository _catalogItemRepository;
     private readonly ICatalogTypeRepository _catalogTypeRepository;
+    private readonly ICatalogBrandRepository _catalogBrandRepository;
     private readonly IMapper _mapper;
 
     public CatalogService(
@@ -19,11 +20,13 @@ public class CatalogService : BaseDataService<ApplicationDbContext>, ICatalogSer
         ILogger<BaseDataService<ApplicationDbContext>> logger,
         ICatalogItemRepository catalogItemRepository,
         ICatalogTypeRepository catalogTypeRepository,
+        ICatalogBrandRepository catalogBrandRepository,
         IMapper mapper)
         : base(dbContextWrapper, logger)
     {
         _catalogItemRepository = catalogItemRepository;
         _catalogTypeRepository = catalogTypeRepository;
+        _catalogBrandRepository = catalogBrandRepository;
         _mapper = mapper;
     }
 
@@ -51,6 +54,21 @@ public class CatalogService : BaseDataService<ApplicationDbContext>, ICatalogSer
             {
                 Count = result.TotalCount,
                 Data = result.Data.Select(s => _mapper.Map<CatalogTypeDto>(s)).ToList(),
+                PageIndex = pageIndex,
+                PageSize = pageSize
+            };
+        });
+    }
+
+    public async Task<PaginatedItemsResponse<CatalogBrandDto>> GetCatalogBrandsAsync(int pageSize, int pageIndex)
+    {
+        return await ExecuteSafeAsync(async () =>
+        {
+            var result = await _catalogBrandRepository.GetByPageAsync(pageIndex, pageSize);
+            return new PaginatedItemsResponse<CatalogBrandDto>()
+            {
+                Count = result.TotalCount,
+                Data = result.Data.Select(s => _mapper.Map<CatalogBrandDto>(s)).ToList(),
                 PageIndex = pageIndex,
                 PageSize = pageSize
             };
